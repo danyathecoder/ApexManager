@@ -128,6 +128,13 @@ impl App {
     }
 
     pub fn open_folder(&mut self, dir: PathBuf) {
+        if !crate::server_process::exe_path(&dir).exists() {
+            self.status_message = format!(
+                "accServer.exe not found in {}  — did you select the server/ subfolder?",
+                dir.display()
+            );
+            return;
+        }
         if let Some(ref mut child) = self.server_process {
             let _ = child.kill();
             let _ = child.wait();
@@ -303,11 +310,14 @@ impl eframe::App for App {
                     ui.add_space(80.0);
                     ui.heading("No server folder selected");
                     ui.add_space(8.0);
-                    ui.label("Click \"Open Folder\" in the sidebar and select the server/ subfolder of your ACC server installation.");
+                    ui.label("Click \"Open Folder\" in the sidebar and select the server/ subfolder — not the root.");
                     ui.add_space(4.0);
-                    ui.label("This folder must contain accServer.exe and a cfg/ subdirectory with the JSON config files.");
+                    ui.label("The correct folder contains accServer.exe directly inside it, along with cfg/, log/, and results/.");
                     ui.add_space(4.0);
-                    ui.weak("Default Steam path:  …\\Assetto Corsa Competizione Dedicated Server\\server\\");
+                    ui.weak("Default Steam path:");
+                    ui.weak("…\\Assetto Corsa Competizione Dedicated Server\\server\\");
+                    ui.add_space(6.0);
+                    ui.colored_label(egui::Color32::YELLOW, "⚠ Do not select the parent folder — it looks similar but the configs are in the wrong place.");
                 });
                 return;
             }
