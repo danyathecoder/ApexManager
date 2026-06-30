@@ -1,0 +1,32 @@
+pub struct Track {
+    pub key: &'static str,
+    pub pit_boxes: u32,
+    pub private_slots: u32,
+}
+
+pub const TRACKS: &[Track] = &[
+    Track { key: "monza",           pit_boxes: 29, private_slots: 60  },
+    Track { key: "zolder",          pit_boxes: 34, private_slots: 50  },
+    Track { key: "brands_hatch",    pit_boxes: 32, private_slots: 50  },
+    Track { key: "silverstone",     pit_boxes: 36, private_slots: 60  },
+    Track { key: "paul_ricard",     pit_boxes: 33, private_slots: 80  },
+    Track { key: "misano",          pit_boxes: 30, private_slots: 50  },
+    Track { key: "spa",             pit_boxes: 82, private_slots: 82  },
+    Track { key: "nurburgring",     pit_boxes: 30, private_slots: 50  },
+    Track { key: "barcelona",       pit_boxes: 29, private_slots: 50  },
+    Track { key: "hungaroring",     pit_boxes: 27, private_slots: 50  },
+    Track { key: "zandvoort",       pit_boxes: 25, private_slots: 50  },
+    Track { key: "kyalami",         pit_boxes: 40, private_slots: 50  },
+    Track { key: "mount_panorama",  pit_boxes: 36, private_slots: 50  },
+    Track { key: "suzuka",          pit_boxes: 51, private_slots: 105 },
+    Track { key: "laguna_seca",     pit_boxes: 30, private_slots: 50  },
+    Track { key: "imola",           pit_boxes: 30, private_slots: 50  },
+    Track { key: "oulton_park",     pit_boxes: 28, private_slots: 50  },
+    Track { key: "donington",       pit_boxes: 37, private_slots: 50  },
+    Track { key: "snetterton",      pit_boxes: 26, private_slots: 50  },
+    Track { key: "cota",            pit_boxes: 30, private_slots: 70  },
+    Track { key: "indianapolis",    pit_boxes: 30, private_slots: 60  },
+    Track { key: "watkins_glen",    pit_boxes: 30, private_slots: 60  },
+    Track { key: "valencia",        pit_boxes: 29, private_slots: 50  },
+    Track { key: "nurburgring_24h", pit_boxes: 50, private_slots: 110 },
+];
