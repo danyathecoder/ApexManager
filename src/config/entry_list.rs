@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Default, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct EntryList {
     pub entries: Vec<Entry>,
@@ -8,8 +8,18 @@ pub struct EntryList {
     pub config_version: u32,
 }
 
-#[derive(Serialize, Deserialize, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+impl Default for EntryList {
+    fn default() -> Self {
+        Self {
+            entries: Vec::new(),
+            force_entry_list: 0,
+            config_version: 1,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase", default)]
 pub struct Entry {
     pub drivers: Vec<Driver>,
     pub race_number: i32,
@@ -21,6 +31,23 @@ pub struct Entry {
     pub default_grid_position: i32,
     pub ballast_kg: u32,
     pub restrictor: u32,
+}
+
+impl Default for Entry {
+    fn default() -> Self {
+        Self {
+            drivers: Vec::new(),
+            race_number: -1,
+            forced_car_model: -1,
+            override_driver_info: 0,
+            custom_car: String::new(),
+            override_car_model_for_custom_car: 0,
+            is_server_admin: 0,
+            default_grid_position: -1,
+            ballast_kg: 0,
+            restrictor: 0,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
