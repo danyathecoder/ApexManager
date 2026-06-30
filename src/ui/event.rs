@@ -1,4 +1,4 @@
-use crate::{app::{App, ConfigFile}, config::event::Session, data::tracks::TRACKS};
+use crate::{app::{App, ConfigFile}, config::event::Session, data::tracks::TRACKS, ui::widgets::{help_panel, help_row}};
 
 struct WeatherPreset {
     label: &'static str,
@@ -30,6 +30,22 @@ const RANDOMNESS_LABELS: &[&str] = &[
 
 pub fn show(app: &mut App, ui: &mut egui::Ui) {
     ui.heading("Event");
+    ui.add_space(4.0);
+
+    help_panel(ui, "event", |ui| {
+        help_row(ui, "Track",              "ACC internal track key (e.g. monza, spa, nurburgring). Select from the dropdown.");
+        help_row(ui, "Ambient Temp",       "Air temperature in °C. Affects tyre behaviour.");
+        help_row(ui, "Cloud Level",        "0.0 = clear sky, 0.3 = light clouds, 1.0 = overcast.");
+        help_row(ui, "Rain",               "0.0 = dry, 1.0 = heavy rain. Requires Wet Weather DLC.");
+        help_row(ui, "Weather Randomness", "0 = fully static conditions. 1–7 = increasing variation during the event.");
+        help_row(ui, "Pre-Race Wait",      "Seconds in lobby before the session opens. 80 s is the recommended default.");
+        help_row(ui, "Session Over Time",  "Extra seconds after the session timer hits zero before the session ends.");
+        help_row(ui, "Post-Qualy / Race",  "Pause in seconds between sessions (time for results screens).");
+        help_row(ui, "Sessions",           "Add in order: P = Practice, Q = Qualifying, R = Race. ACC requires at least one non-race session.");
+        help_row(ui, "Hour / Day",         "Hour of day (0–23) and day of weekend (1–3) when the session starts.");
+        help_row(ui, "Time ×",             "Time-of-day speed multiplier. 1 = real time, 2 = 2× faster.");
+    });
+
     ui.separator();
 
     let ev = &mut app.event;

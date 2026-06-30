@@ -2,10 +2,21 @@ use crate::{
     app::{App, ConfigFile},
     config::bop::BopEntry,
     data::{cars::CAR_MODELS, tracks::TRACKS},
+    ui::widgets::{help_panel, help_row},
 };
 
 pub fn show(app: &mut App, ui: &mut egui::Ui) {
     ui.heading("Balance of Performance");
+    ui.add_space(4.0);
+
+    help_panel(ui, "bop", |ui| {
+        help_row(ui, "Track",          "Select which track this BOP entry applies to. Use a separate row per track per car.");
+        help_row(ui, "Car Model",      "The specific car model to adjust. Each model can have different values per track.");
+        help_row(ui, "Ballast (kg)",   "Extra weight added to the car. Range 0–40 kg. Slows the car proportionally.");
+        help_row(ui, "Restrictor (%)", "Air restrictor percentage. Range 0–40%. Reduces engine power output.");
+        help_row(ui, "Tip",            "Leave this file empty for FreeForAll events — ACC applies its own official BOP to GT3/GT4 classes automatically.");
+    });
+
     ui.separator();
 
     let bop = &mut app.bop;

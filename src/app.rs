@@ -40,7 +40,7 @@ pub enum NavSection {
     AdminCommands,
     Results,
     Reference,
-    ServerControl,
+
     LogViewer,
 }
 
@@ -78,6 +78,12 @@ pub struct App {
     pub log_auto_scroll: bool,
 
     pub admin_car_number: u32,
+
+    pub presets: Vec<String>,
+    pub selected_preset: Option<String>,
+    pub preset_name: String,
+
+    pub sidebar_open: bool,
 }
 
 impl Default for App {
@@ -105,6 +111,10 @@ impl Default for App {
             log_content: String::new(),
             log_auto_scroll: true,
             admin_car_number: 1,
+            presets: Vec::new(),
+            selected_preset: None,
+            preset_name: String::new(),
+            sidebar_open: true,
         }
     }
 }
@@ -123,6 +133,7 @@ impl App {
                 }
             }
         }
+        app.scan_presets();
         app
     }
 
@@ -244,6 +255,72 @@ impl App {
         }
     }
 
+    pub fn scan_presets(&mut self) {
+        self.presets = crate::config::preset::list_presets();
+    }
+
+    pub fn save_current_preset(&mut self) {
+        let name = self.preset_name.trim().to_string();
+        if name.is_empty() {
+            return;
+        }
+        let preset = crate::config::preset::Preset {
+            server_config: self.server_config.clone(),
+            settings: self.settings.clone(),
+            event: self.event.clone(),
+            event_rules: self.event_rules.clone(),
+            assist_rules: self.assist_rules.clone(),
+            entry_list: self.entry_list.clone(),
+            bop: self.bop.clone(),
+        };
+        match crate::config::preset::save_preset(&name, &preset) {
+            Ok(()) => {
+                self.scan_presets();
+                self.selected_preset = Some(name.clone());
+                self.set_toast(&format!("Preset '{name}' saved."));
+            }
+            Err(e) => self.status_message = format!("Failed to save preset: {e}"),
+        }
+    }
+
+    pub fn load_selected_preset(&mut self) {
+        let Some(name) = self.selected_preset.clone() else { return };
+        match crate::config::preset::load_preset(&name) {
+            Ok(preset) => {
+                self.server_config = preset.server_config;
+                self.settings = preset.settings;
+                self.event = preset.event;
+                self.event_rules = preset.event_rules;
+                self.assist_rules = preset.assist_rules;
+                self.entry_list = preset.entry_list;
+                self.bop = preset.bop;
+                self.dirty.extend([
+                    ConfigFile::ServerConfig,
+                    ConfigFile::Settings,
+                    ConfigFile::Event,
+                    ConfigFile::EventRules,
+                    ConfigFile::AssistRules,
+                    ConfigFile::EntryList,
+                    ConfigFile::Bop,
+                ]);
+                self.set_toast(&format!("Preset '{name}' loaded — click Save All to write to disk."));
+            }
+            Err(e) => self.status_message = format!("Failed to load preset '{name}': {e}"),
+        }
+    }
+
+    pub fn delete_selected_preset(&mut self) {
+        let Some(name) = self.selected_preset.clone() else { return };
+        match crate::config::preset::delete_preset(&name) {
+            Ok(()) => {
+                self.scan_presets();
+                self.selected_preset = None;
+                self.set_toast("Preset deleted.");
+            }
+            Err(e) => self.status_message = format!("Failed to delete preset: {e}"),
+        }
+    }
+
     pub fn set_toast(&mut self, msg: &str) {
         self.status_message = msg.to_string();
         self.toast_until = Some(Instant::now() + Duration::from_secs(2));
@@ -309,27 +386,49 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.poll_server_process();
 
-        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                if let Some(until) = self.toast_until {
-                    if Instant::now() < until {
-                        ui.label(&self.status_message.clone());
-                        ctx.request_repaint_after(Duration::from_millis(100));
+        egui::TopBottomPanel::bottom("status_bar")
+            .frame(
+                egui::Frame::new()
+                    .fill(crate::ui::theme::DEEP)
+                    .inner_margin(egui::Margin::symmetric(12, 5))
+                    .stroke(egui::Stroke::new(1.0, crate::ui::theme::BORDER)),
+            )
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    let msg = self.status_message.clone();
+                    if let Some(until) = self.toast_until {
+                        if Instant::now() < until {
+                            ui.label(egui::RichText::new(&msg).color(crate::ui::theme::PRIMARY));
+                            ctx.request_repaint_after(Duration::from_millis(100));
+                        } else {
+                            self.toast_until = None;
+                            ui.label(egui::RichText::new(&msg).color(crate::ui::theme::MUTED));
+                        }
                     } else {
-                        self.toast_until = None;
-                        ui.label(&self.status_message.clone());
+                        ui.label(egui::RichText::new(&msg).color(crate::ui::theme::MUTED));
                     }
-                } else {
-                    ui.label(&self.status_message.clone());
-                }
-                if !self.dirty.is_empty() {
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.label(format!("{} unsaved change(s)", self.dirty.len()));
-                    });
-                }
-            });
-        });
 
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let (status_text, status_color) = match &self.server_status {
+                            ServerStatus::Stopped  => ("● Stopped".to_string(),        crate::ui::theme::MUTED),
+                            ServerStatus::Running  => ("● Running".to_string(),         crate::ui::theme::GREEN),
+                            ServerStatus::Crashed(c) => (format!("● Crashed ({})", c), crate::ui::theme::RED),
+                        };
+                        ui.label(egui::RichText::new(status_text).color(status_color).size(12.0));
+
+                        if !self.dirty.is_empty() {
+                            ui.add_space(12.0);
+                            ui.label(
+                                egui::RichText::new(format!("● {} unsaved", self.dirty.len()))
+                                    .color(crate::ui::theme::AMBER)
+                                    .size(12.0),
+                            );
+                        }
+                    });
+                });
+            });
+
+        crate::ui::topbar::show(self, ctx);
         crate::ui::sidebar::show(self, ctx);
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -351,19 +450,36 @@ impl eframe::App for App {
                 });
                 return;
             }
-            match self.nav.clone() {
-                NavSection::ServerConfig => crate::ui::server_config::show(self, ui),
-                NavSection::Settings => crate::ui::settings::show(self, ui),
-                NavSection::Event => crate::ui::event::show(self, ui),
-                NavSection::EventRules => crate::ui::event_rules::show(self, ui),
-                NavSection::AssistRules => crate::ui::assist_rules::show(self, ui),
-                NavSection::EntryList => crate::ui::entry_list::show(self, ui),
-                NavSection::Bop => crate::ui::bop::show(self, ui),
-                NavSection::AdminCommands => crate::ui::admin::show(self, ctx, ui),
-                NavSection::Results => crate::ui::results::show(self, ui),
-                NavSection::Reference => crate::ui::reference::show(self, ui),
-                NavSection::ServerControl => crate::ui::process::show(self, ctx, ui),
-                NavSection::LogViewer => crate::ui::log_viewer::show(self, ctx, ui),
+
+            // Log viewer and results handle their own internal layout (split panels / scroll)
+            let needs_scroll = !matches!(
+                self.nav,
+                NavSection::LogViewer | NavSection::Results | NavSection::EntryList
+            );
+
+            let mut show_inner = |ui: &mut egui::Ui| {
+                match self.nav.clone() {
+                    NavSection::ServerConfig => crate::ui::server_config::show(self, ui),
+                    NavSection::Settings => crate::ui::settings::show(self, ui),
+                    NavSection::Event => crate::ui::event::show(self, ui),
+                    NavSection::EventRules => crate::ui::event_rules::show(self, ui),
+                    NavSection::AssistRules => crate::ui::assist_rules::show(self, ui),
+                    NavSection::EntryList => crate::ui::entry_list::show(self, ui),
+                    NavSection::Bop => crate::ui::bop::show(self, ui),
+                    NavSection::AdminCommands => crate::ui::admin::show(self, ctx, ui),
+                    NavSection::Results => crate::ui::results::show(self, ui),
+                    NavSection::Reference => crate::ui::reference::show(self, ui),
+                    NavSection::LogViewer => crate::ui::log_viewer::show(self, ctx, ui),
+                }
+            };
+
+            if needs_scroll {
+                egui::ScrollArea::vertical()
+                    .id_salt("central_scroll")
+                    .auto_shrink([false, false])
+                    .show(ui, show_inner);
+            } else {
+                show_inner(ui);
             }
         });
     }

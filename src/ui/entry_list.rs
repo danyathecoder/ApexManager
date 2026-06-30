@@ -2,10 +2,25 @@ use crate::{
     app::{App, ConfigFile},
     config::entry_list::{Driver, Entry},
     data::{cars::CAR_MODELS, categories::DRIVER_CATEGORIES},
+    ui::widgets::{help_panel, help_row},
 };
 
 pub fn show(app: &mut App, ui: &mut egui::Ui) {
     ui.heading("Entry List");
+    ui.add_space(4.0);
+
+    help_panel(ui, "entry_list", |ui| {
+        help_row(ui, "Force Entry List",        "When enabled, only cars in this list may join. Required for reserved race numbers.");
+        help_row(ui, "Race Number",             "1–998 for a reserved number, or -1 to let the player pick any free number.");
+        help_row(ui, "Car Model",               "-1 = player's choice. Select a specific model to enforce it for this slot.");
+        help_row(ui, "Default Grid Position",   "-1 = determined by qualifying result. 1+ = fixed grid slot regardless of quali.");
+        help_row(ui, "Ballast / Restrictor",    "Per-entry performance adjustment. Overrides the BOP file for this specific car.");
+        help_row(ui, "Override Driver Info",    "When on, server uses the name/category fields below instead of the player's ACC profile.");
+        help_row(ui, "Is Server Admin",         "Grants admin privileges to this entry's driver without needing /admin in chat.");
+        help_row(ui, "Steam ID",                "Must start with 'S' followed by the player's 64-bit Steam ID (e.g. S76561198000000000).");
+        help_row(ui, "Driver Category",         "0 = Platinum, 1 = Gold, 2 = Silver, 3 = Bronze. Used for driver rating enforcement.");
+    });
+
     ui.separator();
 
     let el = &mut app.entry_list;

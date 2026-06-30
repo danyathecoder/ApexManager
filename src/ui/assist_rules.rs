@@ -1,7 +1,22 @@
 use crate::app::{App, ConfigFile};
+use crate::ui::widgets::{help_panel, help_row};
 
 pub fn show(app: &mut App, ui: &mut egui::Ui) {
     ui.heading("Assist Rules");
+    ui.add_space(4.0);
+
+    help_panel(ui, "assist_rules", |ui| {
+        help_row(ui, "Stability Control Max", "0 = stability control fully disabled for all. 100 = each player can choose freely (0–100%). Set to 0 for serious/competitive events.");
+        help_row(ui, "Disable Auto Steer",    "When checked, forces auto-steer OFF for all drivers regardless of their personal settings.");
+        help_row(ui, "Disable Auto Lights",   "Forces automatic lights management OFF — drivers must use lights manually.");
+        help_row(ui, "Disable Auto Wiper",    "Forces automatic wipers OFF — drivers must activate wipers manually in rain.");
+        help_row(ui, "Disable Auto Engine",   "Forces auto engine start/stop OFF — drivers must manage the engine themselves.");
+        help_row(ui, "Disable Pit Limiter",   "Forces automatic pit lane speed limiter OFF — drivers must press the button.");
+        help_row(ui, "Disable Auto Gear",     "Forces automatic gearbox OFF — drivers must shift manually.");
+        help_row(ui, "Disable Auto Clutch",   "Forces automatic clutch OFF — drivers must use the clutch pedal.");
+        help_row(ui, "Disable Ideal Line",    "Hides the driving line aid for all drivers.");
+    });
+
     ui.separator();
 
     let a = &mut app.assist_rules;

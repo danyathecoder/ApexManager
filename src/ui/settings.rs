@@ -1,4 +1,5 @@
 use crate::app::{App, ConfigFile};
+use crate::ui::widgets::{card, help_panel, help_row};
 
 const CAR_GROUPS: &[&str] = &["FreeForAll", "GT3", "GT4", "GTC", "TCX"];
 const FORMATION_LAP_TYPES: &[(&str, &str)] = &[
@@ -9,31 +10,50 @@ const FORMATION_LAP_TYPES: &[(&str, &str)] = &[
 
 pub fn show(app: &mut App, ui: &mut egui::Ui) {
     ui.heading("Settings");
-    ui.separator();
+    ui.add_space(4.0);
+
+    help_panel(ui, "settings", |ui| {
+        help_row(ui, "Server Name",         "Shown in the server browser. Keep it short and descriptive.");
+        help_row(ui, "Admin Password",      "Required before /admin command works in-game. Blank = admin disabled.");
+        help_row(ui, "Join Password",       "Leave blank for a public server. Set to restrict access.");
+        help_row(ui, "Car Group",           "FreeForAll = all classes; GT3 / GT4 / GTC / TCX = restrict to that class only.");
+        help_row(ui, "Max Car Slots",       "Max cars on track. Server warns in log if > 10 without rating requirements.");
+        help_row(ui, "Track Medals",        "0 = no requirement. 1–3 medals required to join.");
+        help_row(ui, "Safety Rating",       "-1 = disabled. 0–99 minimum Safety Rating required.");
+        help_row(ui, "Racecraft Rating",    "-1 = disabled. 0–99 minimum Racecraft Rating required.");
+        help_row(ui, "Formation Lap",       "0 = old limiter lap. 1 = new formation lap. 3 = free (no speed limiter).");
+        help_row(ui, "Race Locked",         "Prevents spectators from joining during the race session.");
+        help_row(ui, "Short Formation Lap", "Skips part of the formation lap for shorter events.");
+        help_row(ui, "Allow Auto DQ",       "Server auto-disqualifies cars that violate rules without admin input.");
+    });
+
+    ui.add_space(4.0);
 
     let s = &mut app.settings;
     let mut changed = false;
 
-    egui::Grid::new("settings_grid")
-        .num_columns(2)
-        .spacing([12.0, 6.0])
-        .show(ui, |ui| {
+    card(ui, "SERVER IDENTITY", |ui| {
+        egui::Grid::new("s_identity").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
             ui.label("Server Name");
-            changed |= ui.text_edit_singleline(&mut s.server_name).changed();
+            changed |= ui.add(egui::TextEdit::singleline(&mut s.server_name).desired_width(f32::INFINITY)).changed();
             ui.end_row();
 
             ui.label("Admin Password");
-            changed |= ui.add(egui::TextEdit::singleline(&mut s.admin_password).password(true)).changed();
+            changed |= ui.add(egui::TextEdit::singleline(&mut s.admin_password).password(true).desired_width(f32::INFINITY)).changed();
             ui.end_row();
 
-            ui.label("Password");
-            changed |= ui.add(egui::TextEdit::singleline(&mut s.password).password(true)).changed();
+            ui.label("Join Password");
+            changed |= ui.add(egui::TextEdit::singleline(&mut s.password).password(true).desired_width(f32::INFINITY)).changed();
             ui.end_row();
 
             ui.label("Spectator Password");
-            changed |= ui.add(egui::TextEdit::singleline(&mut s.spectator_password).password(true)).changed();
+            changed |= ui.add(egui::TextEdit::singleline(&mut s.spectator_password).password(true).desired_width(f32::INFINITY)).changed();
             ui.end_row();
+        });
+    });
 
+    card(ui, "SESSION SETUP", |ui| {
+        egui::Grid::new("s_session").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
             ui.label("Car Group");
             egui::ComboBox::from_id_salt("car_group")
                 .selected_text(&s.car_group)
@@ -50,25 +70,25 @@ pub fn show(app: &mut App, ui: &mut egui::Ui) {
             changed |= ui.add(egui::DragValue::new(&mut s.max_car_slots).range(1..=120)).changed();
             ui.end_row();
 
-            ui.label("Track Medals Required").on_hover_text("0 = none, 1-3 medals required");
+            ui.label("Track Medals Required").on_hover_text("0 = none, 1–3 medals required");
             changed |= ui.add(egui::DragValue::new(&mut s.track_medals_requirement).range(0..=3)).changed();
             ui.end_row();
 
-            ui.label("Safety Rating Required").on_hover_text("-1 = disabled, 0-99");
+            ui.label("Safety Rating Required").on_hover_text("-1 = disabled, 0–99");
             changed |= ui.add(egui::DragValue::new(&mut s.safety_rating_requirement).range(-1..=99)).changed();
             ui.end_row();
 
-            ui.label("Racecraft Rating Required").on_hover_text("-1 = disabled, 0-99");
+            ui.label("Racecraft Rating Required").on_hover_text("-1 = disabled, 0–99");
             changed |= ui.add(egui::DragValue::new(&mut s.racecraft_rating_requirement).range(-1..=99)).changed();
             ui.end_row();
 
-            ui.label("Formation Lap Type").on_hover_text("0 = old limiter, 1 = new formation, 3 = free");
+            ui.label("Formation Lap");
             egui::ComboBox::from_id_salt("formation_lap")
                 .selected_text(
                     FORMATION_LAP_TYPES
                         .iter()
                         .find(|&&(v, _)| v.parse::<u8>().ok() == Some(s.formation_lap_type))
-                        .map(|&(_, label)| label)
+                        .map(|&(_, l)| l)
                         .unwrap_or("?"),
                 )
                 .show_ui(ui, |ui| {
@@ -80,45 +100,35 @@ pub fn show(app: &mut App, ui: &mut egui::Ui) {
                     }
                 });
             ui.end_row();
+        });
+    });
 
-            let mut b = s.dump_leaderboards != 0;
-            ui.label("Dump Leaderboards");
-            if ui.checkbox(&mut b, "").changed() { s.dump_leaderboards = b as u8; changed = true; }
-            ui.end_row();
+    card(ui, "RACE OPTIONS", |ui| {
+        egui::Grid::new("s_options").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
+            macro_rules! cb {
+                ($label:expr, $field:expr) => {{
+                    ui.label($label);
+                    let mut b = $field != 0;
+                    if ui.checkbox(&mut b, "").changed() { $field = b as u8; changed = true; }
+                    ui.end_row();
+                }};
+            }
 
-            let mut b = s.is_race_locked != 0;
-            ui.label("Race Locked").on_hover_text("Prevent spectators from joining during race");
-            if ui.checkbox(&mut b, "").changed() { s.is_race_locked = b as u8; changed = true; }
-            ui.end_row();
+            cb!("Race Locked",               s.is_race_locked);
+            cb!("Short Formation Lap",       s.short_formation_lap);
+            cb!("Allow Auto DQ",             s.allow_auto_dq);
+            cb!("Dump Leaderboards",         s.dump_leaderboards);
+            cb!("Dump Entry List",           s.dump_entry_list);
+            cb!("Ignore Premature Disconnects", s.ignore_premature_disconnects);
+            cb!("Randomize Track When Empty",s.randomize_track_when_empty);
+        });
+    });
 
-            let mut b = s.randomize_track_when_empty != 0;
-            ui.label("Randomize Track When Empty");
-            if ui.checkbox(&mut b, "").changed() { s.randomize_track_when_empty = b as u8; changed = true; }
-            ui.end_row();
-
-            let mut b = s.allow_auto_dq != 0;
-            ui.label("Allow Auto DQ");
-            if ui.checkbox(&mut b, "").changed() { s.allow_auto_dq = b as u8; changed = true; }
-            ui.end_row();
-
-            let mut b = s.short_formation_lap != 0;
-            ui.label("Short Formation Lap");
-            if ui.checkbox(&mut b, "").changed() { s.short_formation_lap = b as u8; changed = true; }
-            ui.end_row();
-
-            let mut b = s.dump_entry_list != 0;
-            ui.label("Dump Entry List");
-            if ui.checkbox(&mut b, "").changed() { s.dump_entry_list = b as u8; changed = true; }
-            ui.end_row();
-
-            let mut b = s.ignore_premature_disconnects != 0;
-            ui.label("Ignore Premature Disconnects");
-            if ui.checkbox(&mut b, "").changed() { s.ignore_premature_disconnects = b as u8; changed = true; }
-            ui.end_row();
-
-            ui.label("Central Entry List Path").on_hover_text("(private servers only)");
+    card(ui, "ADVANCED", |ui| {
+        egui::Grid::new("s_advanced").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
+            ui.label("Central Entry List Path").on_hover_text("Private servers only");
             ui.horizontal(|ui| {
-                changed |= ui.text_edit_singleline(&mut s.central_entry_list_path).changed();
+                changed |= ui.add(egui::TextEdit::singleline(&mut s.central_entry_list_path).desired_width(f32::INFINITY)).changed();
                 if ui.small_button("Browse…").clicked() {
                     if let Some(p) = rfd::FileDialog::new().pick_folder() {
                         s.central_entry_list_path = p.to_string_lossy().into_owned();
@@ -128,6 +138,7 @@ pub fn show(app: &mut App, ui: &mut egui::Ui) {
             });
             ui.end_row();
         });
+    });
 
     if changed {
         app.dirty.insert(ConfigFile::Settings);

@@ -1,7 +1,23 @@
 use crate::app::{App, ConfigFile};
+use crate::ui::widgets::{help_panel, help_row};
 
 pub fn show(app: &mut App, ui: &mut egui::Ui) {
     ui.heading("Event Rules");
+    ui.add_space(4.0);
+
+    help_panel(ui, "event_rules", |ui| {
+        help_row(ui, "Qualify Standing",   "1 = fastest single lap (recommended). 2 = average lap time.");
+        help_row(ui, "Superpole Laps",     "Number of hotlap attempts in superpole qualifying. 0 = unlimited.");
+        help_row(ui, "Pit Window",         "-1 = disabled. Otherwise: earliest second of race when pits open.");
+        help_row(ui, "Driver Stint",       "-1 = disabled. Max seconds a driver may drive before mandatory pit. Must also set Max Total Driving Time.");
+        help_row(ui, "Max Total Driving",  "-1 = disabled. Total drive time cap for one driver. Interdependent with Driver Stint.");
+        help_row(ui, "Mandatory Pitstops", "0 = none. 1+ = how many times each car must pit during the race.");
+        help_row(ui, "Max Drivers",        "1 = solo race. 2–3 = endurance (driver swaps allowed up to this count).");
+        help_row(ui, "Refuelling",         "Allow / require refuelling during mandatory pit stops.");
+        help_row(ui, "Tyre Set Count",     "How many tyre sets each car has (1–50). 50 = effectively unlimited. Experimental.");
+        help_row(ui, "Pitstop Requirements", "Force each mandatory stop to include: refuel, tyre change, or driver swap (any combination).");
+    });
+
     ui.separator();
 
     let r = &mut app.event_rules;
