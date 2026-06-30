@@ -162,6 +162,10 @@ impl App {
     pub fn save_one(&mut self, file: ConfigFile) {
         let Some(ref dir) = self.server_dir.clone() else { return };
         let cfg = dir.join("cfg");
+        if let Err(e) = std::fs::create_dir_all(&cfg) {
+            self.status_message = format!("Error creating cfg dir: {e}");
+            return;
+        }
         let result = match file {
             ConfigFile::ServerConfig => io::save_json(
                 &cfg.join(crate::config::server_config::FILENAME),
@@ -295,8 +299,15 @@ impl eframe::App for App {
             if self.server_dir.is_none()
                 && !matches!(self.nav, NavSection::Reference)
             {
-                ui.centered_and_justified(|ui| {
-                    ui.label("Open a server folder to get started.");
+                ui.vertical_centered(|ui| {
+                    ui.add_space(80.0);
+                    ui.heading("No server folder selected");
+                    ui.add_space(8.0);
+                    ui.label("Click \"Open Folder\" in the sidebar and select your ACC server root.");
+                    ui.add_space(4.0);
+                    ui.label("This is the folder that contains accServer.exe, with a cfg/ subdirectory inside it.");
+                    ui.add_space(4.0);
+                    ui.weak("Example: C:\\ACCServer\\  (contains accServer.exe, cfg\\, log\\, results\\)");
                 });
                 return;
             }
