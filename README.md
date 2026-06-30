@@ -125,4 +125,4 @@ Logs print to the terminal. The app reloads config from disk each time you open 
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT + Commons Clause — free for personal and non-commercial use. Commercial use (selling, hosting as a paid service, etc.) requires a separate agreement. See [LICENSE](LICENSE) for the full terms or open an issue to discuss commercial licensing.
