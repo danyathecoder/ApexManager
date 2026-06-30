@@ -16,6 +16,8 @@ pub const RED:     egui::Color32 = egui::Color32::from_rgb(248, 113, 113);
 pub const AMBER:   egui::Color32 = egui::Color32::from_rgb(251, 191, 36);
 
 pub fn apply(ctx: &egui::Context) {
+    load_fonts(ctx);
+
     let mut v = egui::Visuals::dark();
 
     v.panel_fill       = BG;
@@ -62,4 +64,22 @@ pub fn apply(ctx: &egui::Context) {
     v.widgets.open.bg_stroke     = egui::Stroke::new(1.0, ACCENT);
 
     ctx.set_visuals(v);
+}
+
+fn load_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+
+    // Segoe UI — modern Windows system font, much cleaner than egui's bundled default
+    if let Ok(data) = std::fs::read("C:/Windows/Fonts/segoeui.ttf") {
+        fonts.font_data.insert("segoe_ui".to_owned(), std::sync::Arc::new(egui::FontData::from_owned(data)));
+        fonts.families.entry(egui::FontFamily::Proportional).or_default().insert(0, "segoe_ui".to_owned());
+    }
+
+    // Segoe UI Symbol — covers all the geometric glyphs we use (●, ▶, ■, ↺, ◀, ▸, ℹ, ⚠, ✕)
+    if let Ok(data) = std::fs::read("C:/Windows/Fonts/seguisym.ttf") {
+        fonts.font_data.insert("segoe_sym".to_owned(), std::sync::Arc::new(egui::FontData::from_owned(data)));
+        fonts.families.entry(egui::FontFamily::Proportional).or_default().push("segoe_sym".to_owned());
+    }
+
+    ctx.set_fonts(fonts);
 }
