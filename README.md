@@ -79,7 +79,7 @@ Open these ports on your router and firewall for the server to be reachable:
 Requires [Rust](https://rustup.rs/) (stable).
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ApexManager.git
+git clone https://github.com/danyathecoder/ApexManager.git
 cd ApexManager
 cargo build --release
 ```
