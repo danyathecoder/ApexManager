@@ -11,6 +11,10 @@ A Windows desktop GUI for managing **Assetto Corsa Competizione** dedicated serv
 
 Running an ACC dedicated server means maintaining a handful of JSON config files with dozens of fields, cryptic defaults, and UTF-16LE encoding that most text editors mangle silently. ApexManager gives you a clean visual interface for all of them, validates your input, and saves files in exactly the format ACC expects.
 
+| Editing config | Server running |
+|:-:|:-:|
+| ![Server Config panel](docs/screenshots/server-config.png) | ![Server running](docs/screenshots/server-running.png) |
+
 ---
 
 ## Features
