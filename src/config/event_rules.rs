@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct EventRules {
     pub qualify_standing_type: u8,
+    pub superpole_max_car: i32,
     pub pit_window_length_sec: i32,
     pub driver_stint_time_sec: i32,
     pub mandatory_pitstop_count: u32,

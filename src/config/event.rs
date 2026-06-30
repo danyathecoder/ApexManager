@@ -1,12 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct Event {
     pub track: String,
+    pub event_type: String,
     pub pre_race_waiting_time_seconds: u32,
     pub session_over_time_seconds: u32,
     pub ambient_temp: f32,
+    pub track_temp: f32,
     pub cloud_level: f32,
     pub rain: f32,
     pub weather_randomness: u8,

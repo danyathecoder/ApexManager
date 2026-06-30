@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct EntryList {
     pub entries: Vec<Entry>,
     pub force_entry_list: u8,
+    pub config_version: u32,
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]

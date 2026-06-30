@@ -15,7 +15,7 @@ pub fn read_utf16le(path: &Path) -> Result<String> {
 pub fn write_utf16le(path: &Path, content: &str) -> Result<()> {
     let (encoded, _, _) = encoding_rs::UTF_16LE.encode(content);
     let mut bytes = vec![0xFF, 0xFE];
-    bytes.extend_from_slice(&encoded);
+    bytes.extend_from_slice(encoded.as_ref());
     std::fs::write(path, bytes)?;
     Ok(())
 }

@@ -303,11 +303,11 @@ impl eframe::App for App {
                     ui.add_space(80.0);
                     ui.heading("No server folder selected");
                     ui.add_space(8.0);
-                    ui.label("Click \"Open Folder\" in the sidebar and select your ACC server root.");
+                    ui.label("Click \"Open Folder\" in the sidebar and select the server/ subfolder of your ACC server installation.");
                     ui.add_space(4.0);
-                    ui.label("This is the folder that contains accServer.exe, with a cfg/ subdirectory inside it.");
+                    ui.label("This folder must contain accServer.exe and a cfg/ subdirectory with the JSON config files.");
                     ui.add_space(4.0);
-                    ui.weak("Example: C:\\ACCServer\\  (contains accServer.exe, cfg\\, log\\, results\\)");
+                    ui.weak("Default Steam path:  …\\Assetto Corsa Competizione Dedicated Server\\server\\");
                 });
                 return;
             }
