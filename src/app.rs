@@ -117,8 +117,7 @@ impl App {
                 if let Ok(p) = serde_json::from_str::<AppPersist>(&text) {
                     if let Some(dir) = p.last_server_dir {
                         if dir.exists() {
-                            app.load_all(&dir);
-                            app.server_dir = Some(dir);
+                            app.open_folder(dir);
                         }
                     }
                 }
@@ -143,7 +142,19 @@ impl App {
         self.server_status = ServerStatus::Stopped;
         self.load_all(&dir);
         self.server_dir = Some(dir);
-        self.dirty.clear();
+
+        // If the loaded config looks like ACC's untouched install template
+        // (udpPort == 0 or 1), auto-apply our sensible defaults so the user
+        // doesn't have to fill every field from scratch.
+        if self.server_config.udp_port <= 1 {
+            self.reset_to_defaults();
+            self.status_message =
+                "Fresh config detected — defaults applied. Review and click Save All.".to_string();
+        } else {
+            self.dirty.clear();
+            self.status_message = format!("Loaded from {}", self.server_dir.as_ref().unwrap().display());
+        }
+
         self.save_persist();
     }
 
@@ -156,7 +167,26 @@ impl App {
         self.assist_rules = load_or_default(&cfg, crate::config::assist_rules::FILENAME);
         self.entry_list = load_or_default(&cfg, crate::config::entry_list::FILENAME);
         self.bop = load_or_default(&cfg, crate::config::bop::FILENAME);
-        self.status_message = format!("Loaded from {}", dir.display());
+    }
+
+    pub fn reset_to_defaults(&mut self) {
+        self.server_config = ServerConfig::default();
+        self.settings = Settings::default();
+        self.event = Event::default();
+        self.event_rules = EventRules::default();
+        self.assist_rules = AssistRules::default();
+        self.entry_list = EntryList::default();
+        self.bop = Bop::default();
+        self.dirty.extend([
+            ConfigFile::ServerConfig,
+            ConfigFile::Settings,
+            ConfigFile::Event,
+            ConfigFile::EventRules,
+            ConfigFile::AssistRules,
+            ConfigFile::EntryList,
+            ConfigFile::Bop,
+        ]);
+        self.status_message = "Reset to defaults — click Save All to write files.".to_string();
     }
 
     pub fn save_all(&mut self) {

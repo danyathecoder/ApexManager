@@ -11,11 +11,11 @@ pub fn show(app: &mut App, ui: &mut egui::Ui) {
         .num_columns(2)
         .spacing([12.0, 6.0])
         .show(ui, |ui| {
-            ui.label("UDP Port").on_hover_text("UDP port for car data (default 9600)");
+            ui.label("UDP Port").on_hover_text("UDP port for car data (default 9231)");
             changed |= ui.add(egui::DragValue::new(&mut cfg.udp_port).range(1..=65535)).changed();
             ui.end_row();
 
-            ui.label("TCP Port").on_hover_text("TCP port for client connections (default 9600)");
+            ui.label("TCP Port").on_hover_text("TCP port for client connections (default 9232)");
             changed |= ui.add(egui::DragValue::new(&mut cfg.tcp_port).range(1..=65535)).changed();
             ui.end_row();
 

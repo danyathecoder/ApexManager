@@ -4,20 +4,50 @@ pub fn show(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
     ui.heading("Admin Commands");
     ui.separator();
 
-    ui.colored_label(
-        egui::Color32::from_rgb(180, 180, 60),
-        "Connect to the server in-game, then paste these commands into chat.",
-    );
-    ui.add_space(6.0);
+    // Step 1 — authenticate
+    egui::CollapsingHeader::new("Step 1 — Authenticate as Admin")
+        .default_open(true)
+        .show(ui, |ui| {
+            let pwd = app.settings.admin_password.clone();
+            if pwd.is_empty() {
+                ui.colored_label(
+                    egui::Color32::from_rgb(220, 80, 80),
+                    "adminPassword is empty — set it in Settings and restart the server.\n\
+                     Admin commands will not work until a password is configured.",
+                );
+            } else {
+                ui.label("Join the server in-game, open chat, and send:");
+                cmd_btn(
+                    app,
+                    ctx,
+                    ui,
+                    &format!("Copy /admin command"),
+                    &format!("/admin {pwd}"),
+                    "Authenticates you as admin for this session",
+                );
+                ui.colored_label(
+                    egui::Color32::from_rgb(140, 200, 140),
+                    "You must do this once per session before other commands work.",
+                );
+            }
+        });
 
+    ui.add_space(4.0);
+
+    // Step 2 — pick target car
     ui.horizontal(|ui| {
-        ui.label("Car #:");
+        ui.label("Target car #:");
         ui.add(egui::DragValue::new(&mut app.admin_car_number).range(1..=998));
+        ui.colored_label(
+            egui::Color32::GRAY,
+            "(use the race number shown on the car, e.g. #88)",
+        );
     });
     let car = app.admin_car_number;
 
     ui.add_space(4.0);
 
+    ui.add_space(4.0);
     egui::CollapsingHeader::new("Session Control").default_open(true).show(ui, |ui| {
         cmd_btn(app, ctx, ui, "Next Session",  "/next",    "Advance to the next session");
         cmd_btn(app, ctx, ui, "Restart",       "/restart", "Restart the current session");

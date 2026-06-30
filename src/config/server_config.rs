@@ -15,8 +15,8 @@ pub struct ServerConfig {
 impl Default for ServerConfig {
     fn default() -> Self {
         Self {
-            udp_port: 9600,
-            tcp_port: 9600,
+            udp_port: 9231,
+            tcp_port: 9323,
             max_connections: 30,
             lan_discovery: 1,
             register_to_lobby: 1,

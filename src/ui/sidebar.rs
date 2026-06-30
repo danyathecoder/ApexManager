@@ -10,6 +10,17 @@ pub fn show(app: &mut App, ctx: &egui::Context) {
             }
         }
 
+        if ui
+            .add_enabled(
+                app.server_dir.is_some(),
+                egui::Button::new("New Config"),
+            )
+            .on_hover_text("Reset all config files to sensible defaults (does not overwrite until you Save All)")
+            .clicked()
+        {
+            app.reset_to_defaults();
+        }
+
         ui.separator();
         ui.small("Configuration");
 

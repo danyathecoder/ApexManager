@@ -21,7 +21,15 @@ pub fn start(server_dir: &Path) -> anyhow::Result<std::process::Child> {
 
 pub fn poll_status(child: &mut std::process::Child) -> ServerStatus {
     match child.try_wait() {
-        Ok(Some(status)) => ServerStatus::Crashed(status.code().unwrap_or(-1)),
+        Ok(Some(status)) => {
+            let code = status.code().unwrap_or(-1);
+            // 0xC000013A = STATUS_CONTROL_C_EXIT: user closed the console window or sent Ctrl+C
+            if code == 0 || code == -1073741510 {
+                ServerStatus::Stopped
+            } else {
+                ServerStatus::Crashed(code)
+            }
+        }
         Ok(None) => ServerStatus::Running,
         Err(_) => ServerStatus::Crashed(-1),
     }
