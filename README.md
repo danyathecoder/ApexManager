@@ -2,8 +2,6 @@
 
 A Windows desktop GUI for managing **Assetto Corsa Competizione** dedicated server configuration files — no more hand-editing JSON in Notepad.
 
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/danyathecreator)
-
 > **Windows SmartScreen warning?**
 > The app is not yet code-signed. When Windows says *"Windows protected your PC"*, click **More info → Run anyway**. The app does not connect to the internet and does not modify anything outside your server folder and `%APPDATA%\ApexManager\`.
 
